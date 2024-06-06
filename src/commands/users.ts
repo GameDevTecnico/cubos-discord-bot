@@ -1,4 +1,4 @@
-import { CommandInteraction, SlashCommandBuilder } from "discord.js";
+import { CommandInteraction, EmbedBuilder, SlashCommandBuilder } from "discord.js";
 import * as state from "../state.js";
 
 export const data = new SlashCommandBuilder()
@@ -7,12 +7,12 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction: CommandInteraction) {
     const users = state.data.map(developer => {
-        return `${developer.discordId} -> ${developer.githubUsername}`;
+        return `<@${developer.discordId}>: ${developer.githubUsername}`;
     });
 
-    if (users.length === 0) {
-        await interaction.reply({ content: 'No users registered', ephemeral: true });
-    } else {
-        await interaction.reply({ content: users.join('\n'), ephemeral: true });
-    }
+    const embed = new EmbedBuilder()
+        .setTitle('Registered Users')
+        .setDescription(users.length === 0 ? 'No users registered' : users.join('\n'));
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
 }
