@@ -1,10 +1,9 @@
-import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import * as state from "../state.js";
 
 export const data = new SlashCommandBuilder()
     .setName('users')
-    .setDescription('Lists all registered users')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
+    .setDescription('Lists all registered users');
 
 export async function execute(interaction: CommandInteraction) {
     const users = state.data.map(developer => {

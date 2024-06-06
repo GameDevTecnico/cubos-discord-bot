@@ -15,6 +15,12 @@ discord.on(Discord.Events.ClientReady, async () => {
 async function handleCommand(interaction: Discord.CommandInteraction) {
   const command = commands.find(cmd => cmd.data.name === interaction.commandName);
   if (!command) return;
+
+  if (interaction.user.id !== process.env.DISCORD_ADMIN_ID) {
+    interaction.reply({ content: 'You do not have permission to execute this command!', ephemeral: true });
+    return;
+  }
+
   console.log(`${interaction.user.globalName} is executing command ${command.data.name}`);
 
   try {

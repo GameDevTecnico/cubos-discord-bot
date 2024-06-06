@@ -1,10 +1,9 @@
-import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import * as state from "../state.js";
 
 export const data = new SlashCommandBuilder()
     .setName('deregister')
     .setDescription('Deregisters a previously registered GitHub username')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addUserOption(option => option.setName('discord-user').setDescription('The Discord user to register').setRequired(true));
 
 export async function execute(interaction: CommandInteraction) {

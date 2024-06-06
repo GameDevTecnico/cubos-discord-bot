@@ -1,10 +1,9 @@
-import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
+import { CommandInteraction, SlashCommandBuilder } from "discord.js";
 import * as state from "../state.js";
 
 export const data = new SlashCommandBuilder()
     .setName('register')
     .setDescription('Registers a GitHub username with a Discord user')
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addUserOption(option => option.setName('discord-user').setDescription('The Discord user to register').setRequired(true))
     .addStringOption(option => option.setName('github-username').setDescription('The GitHub username to register').setRequired(true));
 
