@@ -4,14 +4,14 @@ import * as path from 'node:path';
 
 export type Command = {
     data: SlashCommandBuilder;
-    execute: (interaction: CommandInteraction) => void;
+    execute: (interaction: CommandInteraction) => Promise<void>;
 };
 
-function extractCommands(path: string): Command[] {
+async function extractCommands(path: string): Promise<Command[]> {
     if (fs.lstatSync(path).isDirectory()) {
-        return fs.readdirSync(path).flatMap(file => extractCommands(path + '/' + file));
+        return (await Promise.all(fs.readdirSync(path).map(file => extractCommands(path + '/' + file)))).flat();
     } else if (path.endsWith('.js')) {
-        const cmd = require(path);
+        const cmd = await import(path);
         if ('data' in cmd && 'execute' in cmd) {
             return [cmd];
         } else {
@@ -22,5 +22,5 @@ function extractCommands(path: string): Command[] {
     return [];
 }
 
-const commands = extractCommands(path.join(__dirname, 'commands'));
+const commands = await extractCommands(path.join(import.meta.dirname, 'commands'));
 export default commands;

@@ -2,3 +2,5 @@ node_modules
 dist
 .direnv
 .env
+github.pem
+state.json
