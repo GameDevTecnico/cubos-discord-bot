@@ -13,13 +13,13 @@ export async function execute(interaction: CommandInteraction) {
 
     // Check if the GitHub username is already registered.
     if (state.data.some(developer => developer.githubUsername === githubUsername)) {
-        await interaction.reply({ content: `The GitHub username ${githubUsername} is already registered`, ephemeral: true });
+        await interaction.reply({ content: `GitHub username **${githubUsername}** is already registered`, ephemeral: true });
         return;
     }
 
     // Check if the Discord user is already registered.
     if (state.data.some(developer => developer.discordId === discordUser.id)) {
-        await interaction.reply({ content: `The Discord user ${discordUser.id} is already registered`, ephemeral: true });
+        await interaction.reply({ content: `<@${discordUser.id}> is already registered`, ephemeral: true });
         return;
     }
 
@@ -32,5 +32,5 @@ export async function execute(interaction: CommandInteraction) {
 
     state.save();
 
-    await interaction.reply({ content: `The Discord user id ${discordUser.id} has been registered with GitHub username ${githubUsername}`, ephemeral: true });
+    await interaction.reply({ content: `<@${discordUser.id}> has been registered with GitHub username **${githubUsername}**`, ephemeral: true });
 }

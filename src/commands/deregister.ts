@@ -13,7 +13,7 @@ export async function execute(interaction: CommandInteraction) {
     const developerIndex = state.data.findIndex(developer => developer.discordId === discordUser.id);
 
     if (developerIndex === -1) {
-        await interaction.reply({ content: `The Discord user ${discordUser.id} is not registered`, ephemeral: true });
+        await interaction.reply({ content: `<@${discordUser.id}> is not registered`, ephemeral: true });
         return;
     }
 
@@ -22,5 +22,5 @@ export async function execute(interaction: CommandInteraction) {
 
     state.save();
 
-    await interaction.reply({ content: `The Discord user ${discordUser.id} has been deregistered`, ephemeral: true });
+    await interaction.reply({ content: `<@${discordUser.id}> has been deregistered`, ephemeral: true });
 }
