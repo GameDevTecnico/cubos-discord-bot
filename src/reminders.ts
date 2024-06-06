@@ -1,7 +1,7 @@
 import octokit from "./api/octokit.js";
 import discord from "./api/discord.js";
 import * as state from "./state.js";
-import { ActionRow, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder } from "discord.js";
+import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder } from "discord.js";
 
 async function fetchPullRequests(repo: string) {
     const [owner, name] = repo.split('/');
@@ -147,9 +147,21 @@ export async function select(interaction: StringSelectMenuInteraction) {
         return;
     }
 
-    pending.nextNotificationTime = Date.now() + parseTime(interaction.values[0]);
+    const time = parseTime(interaction.values[0]);
+    pending.nextNotificationTime = Date.now() + time;
 
     state.save();
+
+    if (time > parseTime('1d')) {
+        const days = Math.round(time / (1000 * 60 * 60 * 24));
+
+        await octokit.issues.createComment({
+            owner: prURL.split('/')[3],
+            repo: prURL.split('/')[4],
+            issue_number: parseInt(prURL.split('/')[6]),
+            body: `@${developer.githubUsername} will only be able to review this PR in ${days} days.`,
+        })
+    }
 
     interaction.reply({ content: 'Reminder has been updated.', ephemeral: true });
 }
