@@ -72,6 +72,7 @@ export async function update() {
                 .setColor('#005599')
                 .setTitle(review.pr.title)
                 .setURL(review.pr.html_url)
+                .setAuthor({ name: review.pr.user.login, iconURL: review.pr.user.avatar_url, url: review.pr.user.html_url })
                 .setDescription(
                     `Your review has been requested for **${review.pr.user.login}**'s [pull request](${review.pr.html_url}).\n` +
                     `Try to review it as soon as possible!`)
