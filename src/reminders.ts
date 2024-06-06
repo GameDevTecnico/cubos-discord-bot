@@ -1,6 +1,7 @@
 import octokit from "./api/octokit.js";
 import discord from "./api/discord.js";
 import * as state from "./state.js";
+import { ActionRow, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuInteraction, StringSelectMenuOptionBuilder } from "discord.js";
 
 async function fetchPullRequests(repo: string) {
     const [owner, name] = repo.split('/');
@@ -12,7 +13,7 @@ async function fetchPullRequests(repo: string) {
     });
 }
 
-export default async function update() {
+export async function update() {
     // Fetch all repositories we were added to.
     const repos = await octokit.apps.listReposAccessibleToInstallation();
     const repoNames = repos.data.repositories.map(repo => repo.full_name);
@@ -66,10 +67,41 @@ export default async function update() {
         // Send a message to the developer's DMs on Discord.
         try {
             const discordUser = await discord.users.fetch(developer.discordId);
-            const message =
-                `You have a pending review for **${review.pr.user.login}**'s pull request: ${review.pr.html_url}\n` +
-                `Please review it as soon as possible! Reminding you again in **24 hours**.`;
-            await discordUser.send(message);
+
+            const embed = new EmbedBuilder()
+                .setColor('#005599')
+                .setTitle(review.pr.title)
+                .setURL(review.pr.html_url)
+                .setDescription(
+                    `Your review has been requested for **${review.pr.user.login}**'s [pull request](${review.pr.html_url}).\n` +
+                    `Try to review it as soon as possible!`)
+                .setTimestamp();
+
+            const select = new StringSelectMenuBuilder()
+                .setCustomId('reminder')
+                .addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Remind me again in 3 hours')
+                        .setValue('3h')
+                        .setEmoji('⏰'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Remind me again in 1 day')
+                        .setValue('1d')
+                        .setEmoji('⏰')
+                        .setDefault(true),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Remind me again in 3 days')
+                        .setValue('3d')
+                        .setEmoji('⏰'),
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel('Remind me again in 5 days')
+                        .setValue('5d')
+                        .setEmoji('⏰')
+                );
+
+            const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(select);
+
+            await discordUser.send({ embeds: [embed], components: [row] });
             console.log(`Sent a reminder to developer ${developer.githubUsername} for review at ${review.pr.html_url}`);
         } catch (error) {
             console.error(`Failed to send a reminder to developer ${developer.githubUsername} for review at ${review.pr.html_url}`);
@@ -85,4 +117,39 @@ export default async function update() {
     }
 
     state.save();
+}
+
+function parseTime(time: string) {
+    const unit = time[time.length - 1];
+    const value = parseInt(time.slice(0, -1));
+    switch (unit) {
+        case 'h': return value * 1000 * 60 * 60;
+        case 'd': return value * 1000 * 60 * 60 * 24;
+    }
+}
+
+export async function select(interaction: StringSelectMenuInteraction) {
+    const prURL = interaction.message.embeds[0].url;
+    const developer = state.data.find(developer => developer.discordId === interaction.user.id);
+
+    console.log(`${interaction.user.globalName} selected ${interaction.values[0]} for review reminder of PR ${prURL}`);
+
+    if (!developer) {
+        console.warn(`No registered developer found for Discord user ${interaction.user.globalName}`);
+        interaction.reply({ content: 'You are not registered as a developer.', ephemeral: true });
+        return;
+    }
+
+    const pending = developer.pendingReviews.find(pr => pr.pullRequestURL === prURL);
+    if (!pending) {
+        console.warn(`No pending review found for developer ${developer.githubUsername} at ${prURL}`);
+        interaction.reply({ content: 'Review is no longer pending.', ephemeral: true });
+        return;
+    }
+
+    pending.nextNotificationTime = Date.now() + parseTime(interaction.values[0]);
+
+    state.save();
+
+    interaction.reply({ content: 'Reminder has been updated.', ephemeral: true });
 }

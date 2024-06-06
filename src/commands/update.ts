@@ -1,5 +1,5 @@
 import { CommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
-import update from "../update.js";
+import { update } from "../reminders.js";
 
 export const data = new SlashCommandBuilder()
     .setName('update')
