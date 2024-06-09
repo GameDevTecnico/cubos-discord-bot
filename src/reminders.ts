@@ -22,8 +22,9 @@ export async function update() {
     // Fetch all open pull requests from all repositories.
     const pullRequests = (await Promise.all(repoNames.map(fetchPullRequests)))
         .flatMap(prs => prs.data)
-        .flat();
-    console.log(`Found open pull requests: ${pullRequests.map(pr => pr.html_url).join(' ')}`);
+        .flat()
+        .filter(pr => pr.draft === false);
+    console.log(`Found open ready for review pull requests: ${pullRequests.map(pr => pr.html_url).join(' ')}`);
 
     // Fetch all requested reviews from all pull requests.
     const requestedReviews = (await Promise.all(pullRequests.map(async pr => {
